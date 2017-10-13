@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="res.layout.CityView">
+
+
+    <GridLayout
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:useDefaultMargins="true"
+
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <!-- City name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_name"
+            android:textSize="8pt" />
+
+        <TextView
+            android:id="@+id/cityName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Avignon"
+            android:textSize="6pt" />
+
+        <!-- City country -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_country"
+            android:textSize="8pt" />
+
+        <TextView
+            android:id="@+id/cityCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="France"
+            android:textSize="6pt" />
+
+
+        <!-- Séparateur -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_column="0"
+            android:layout_columnSpan="2"
+            android:layout_marginTop="5pt"
+            android:layout_marginBottom="5pt"/>
+        <!-- Fin Séparateur -->
+
+
+        <!-- City Wind -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_wind"
+            android:textSize="8pt" />
+
+        <TextView
+            android:id="@+id/cityWind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="45454"
+            android:textSize="6pt" />
+
+        <!-- City temperature -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_temp"
+            android:textSize="8pt" />
+
+        <TextView
+            android:id="@+id/cityTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25 C"
+            android:textSize="6pt" />
+
+        <!-- City presure -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_pression"
+            android:textSize="8pt" />
+
+        <TextView
+            android:id="@+id/cityPresure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1022 hPa"
+            android:textSize="6pt" />
+
+        <!-- City date -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_date"
+            android:textSize="8pt" />
+
+        <TextView
+            android:id="@+id/cityDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2015.10.12 0730 UTC"
+            android:textSize="6pt" />
+    </GridLayout>
+</android.support.constraint.ConstraintLayout>

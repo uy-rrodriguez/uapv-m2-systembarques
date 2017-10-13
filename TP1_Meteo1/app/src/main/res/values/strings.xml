@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">TP1_Meteo1</string>
+    <string name="app_name">TP1 Météo</string>
+    <string name="title_activity_city_view">Détails de la ville</string>
+
+    <string name="city_name">Ville</string>
+    <string name="city_country">Pays</string>
+    <string name="city_wind">Vent</string>
+    <string name="city_temp">Température</string>
+    <string name="city_presure">Pression</string>
+    <string name="city_date">Date</string>
 </resources>

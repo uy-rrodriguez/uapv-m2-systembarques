@@ -33,7 +33,7 @@ public class City {
 
     @Override
     public String toString() {
-        return nom + "(" + pays + ")";
+        return nom + " (" + pays + ")";
     }
 
     public static List getVilles() {
