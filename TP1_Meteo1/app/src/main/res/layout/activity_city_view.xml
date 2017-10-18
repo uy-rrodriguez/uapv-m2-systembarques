@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="res.layout.CityView">
-
+    tools:context="fr.uapv.rrodriguez.tp1_meteo1.CityView">
 
     <GridLayout
-        android:layout_width="368dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="2"
         android:useDefaultMargins="true"
@@ -89,7 +87,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/city_pression"
+            android:text="@string/city_presure"
             android:textSize="8pt" />
 
         <TextView
@@ -113,4 +111,4 @@
             android:text="2015.10.12 0730 UTC"
             android:textSize="6pt" />
     </GridLayout>
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>

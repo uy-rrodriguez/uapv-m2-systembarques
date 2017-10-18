@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="fr.uapv.rrodriguez.tp1_meteo1.AddCityActivity">
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:useDefaultMargins="true"
+
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <!-- City name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_name"
+            android:textSize="8pt" />
+
+        <EditText
+            android:id="@+id/cityName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Nom de la ville"
+            android:textSize="6pt" />
+
+        <!-- City country -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/city_country"
+            android:textSize="8pt" />
+
+        <EditText
+            android:id="@+id/cityCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Pays de la ville"
+            android:textSize="6pt" />
+
+
+        <!-- Séparateur -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_column="0"
+            android:layout_columnSpan="2"
+            android:layout_marginBottom="5pt"
+            android:layout_marginTop="5pt"
+            android:background="@android:color/darker_gray" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_column="0"
+            android:layout_columnSpan="2">
+
+            <Button
+                android:id="@+id/btnAdd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="@string/city_btn_add" />
+        </RelativeLayout>
+
+        <!-- Fin Séparateur -->
+
+    </GridLayout>
+
+</RelativeLayout>

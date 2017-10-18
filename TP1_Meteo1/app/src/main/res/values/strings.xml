@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">TP1 Météo</string>
     <string name="title_activity_city_view">Détails de la ville</string>
+    <string name="title_activity_city_add">Ajouter une ville</string>
+
+    <string name="city_context_menu_title">Options</string>
+    <string name="city_context_menu_del">Supprimer</string>
 
     <string name="city_name">Ville</string>
     <string name="city_country">Pays</string>
@@ -8,4 +12,6 @@
     <string name="city_temp">Température</string>
     <string name="city_presure">Pression</string>
     <string name="city_date">Date</string>
+
+    <string name="city_btn_add">Ajouter</string>
 </resources>

@@ -1,5 +1,6 @@
 package fr.uapv.rrodriguez.tp1_meteo1.metier;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +18,14 @@ import java.util.List;
  * Created by uapv1601663 on 09/10/17.
  */
 
-public class City {
+public class City implements Serializable {
+
     private String nom;
     private String pays;
     private String dernierReleve;
-    private int vent;
-    private String ventDir;
+    //private int vent;
+    //private String ventDir;
+    private String vent;
     private int pression;
     private float temp;
 
@@ -34,14 +37,6 @@ public class City {
     @Override
     public String toString() {
         return nom + " (" + pays + ")";
-    }
-
-    public static List getVilles() {
-        List<City> villes = new ArrayList<>();
-        villes.add(new City("Avignon", "France"));
-        villes.add(new City("Paris", "France"));
-        villes.add(new City("Montevideo", "Uruguay"));
-        return villes;
     }
 
 
@@ -69,6 +64,7 @@ public class City {
         this.dernierReleve = dernierReleve;
     }
 
+    /*
     public int getVent() {
         return vent;
     }
@@ -83,6 +79,15 @@ public class City {
 
     public void setVentDir(String ventDir) {
         this.ventDir = ventDir;
+    }
+    */
+
+    public String getVent() {
+        return vent;
+    }
+
+    public void setVent(String vent) {
+        this.vent = vent;
     }
 
     public int getPression() {
