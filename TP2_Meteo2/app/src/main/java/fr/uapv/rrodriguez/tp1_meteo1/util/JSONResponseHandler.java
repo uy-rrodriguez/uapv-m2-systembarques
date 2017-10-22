@@ -1,4 +1,4 @@
-package fr.uavignon.weather;
+package fr.uapv.rrodriguez.tp1_meteo1.util;
 
 import android.annotation.TargetApi;
 import android.os.Build;
