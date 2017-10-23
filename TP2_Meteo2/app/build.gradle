@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "26.0.0"
     defaultConfig {
-        applicationId "fr.uapv.rrodriguez.tp1_meteo1"
+        applicationId "fr.uapv.rrodriguez.tp2_meteo2"
         minSdkVersion 11
         targetSdkVersion 25
         versionCode 1

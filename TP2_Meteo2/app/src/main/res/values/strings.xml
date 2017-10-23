@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TP1 Météo</string>
+    <string name="app_name">TP2 Météo</string>
     <string name="title_activity_city_view">Détails de la ville</string>
     <string name="title_activity_city_add">Ajouter une ville</string>
 

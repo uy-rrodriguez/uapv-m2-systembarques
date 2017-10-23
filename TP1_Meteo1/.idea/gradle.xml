@@ -7,8 +7,8 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="/mnt/Donnees_itinerantes/FAC/2017-2018-S1/Syst_Embarques_Husset/TP1_Meteo1" />
+            <option value="/mnt/Donnees_itinerantes/FAC/2017-2018-S1/Syst_Embarques_Husset/TP1_Meteo1/app" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

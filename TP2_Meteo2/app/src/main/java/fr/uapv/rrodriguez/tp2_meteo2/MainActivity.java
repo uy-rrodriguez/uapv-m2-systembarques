@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Actualisation des donnees en BDD
-                CityDAO.update(activity, it.next());
+                CityDAO.update(activity, c);
             }
 
             // Apres d'avoir traite toutes les villes, on va mettre a jour l'adapter

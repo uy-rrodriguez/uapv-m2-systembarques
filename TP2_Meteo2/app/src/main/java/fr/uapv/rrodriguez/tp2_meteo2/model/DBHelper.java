@@ -29,16 +29,15 @@ public class DBHelper extends SQLiteOpenHelper {
         String sql;
         SQLiteStatement st;
 
-        // Table city
+        // Table weather
         sql = "CREATE TABLE weather(" +
-                "   _ID            INTEGER AUTO_INCREMENT," +
+                "   _ID            INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "   nom            VARCHAR(20)," +
                 "   pays           VARCHAR(20)," +
                 "   dernierReleve  DATE," +
                 "   vent           VARCHAR(10)," +
                 "   pression       INTEGER," +
                 "   temp           FLOAT," +
-                "   PRIMARY KEY    (id)," +
                 "   UNIQUE         (nom, pays)" +
                 ")";
         st = db.compileStatement(sql);
