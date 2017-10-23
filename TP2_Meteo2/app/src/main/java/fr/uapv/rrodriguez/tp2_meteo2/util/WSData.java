@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp1_meteo1.util;
+package fr.uapv.rrodriguez.tp2_meteo2.util;
 
 import java.util.HashMap;
 import java.util.List;

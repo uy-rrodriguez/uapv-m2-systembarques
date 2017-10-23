@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp1_meteo1;
+package fr.uapv.rrodriguez.tp2_meteo2;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import fr.uapv.rrodriguez.tp1_meteo1.util.MyUtils;
+import fr.uapv.rrodriguez.tp2_meteo2.util.MyUtils;
 
 public class AddCityActivity extends AppCompatActivity {
 

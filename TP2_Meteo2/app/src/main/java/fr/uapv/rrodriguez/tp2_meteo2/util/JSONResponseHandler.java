@@ -1,9 +1,8 @@
-package fr.uapv.rrodriguez.tp1_meteo1.util;
+package fr.uapv.rrodriguez.tp2_meteo2.util;
 
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;

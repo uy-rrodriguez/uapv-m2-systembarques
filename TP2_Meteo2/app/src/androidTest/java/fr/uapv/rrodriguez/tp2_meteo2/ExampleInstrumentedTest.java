@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp1_meteo1;
+package fr.uapv.rrodriguez.tp2_meteo2;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("fr.uapv.rrodriguez.tp1_meteo1", appContext.getPackageName());
+        assertEquals("fr.uapv.rrodriguez.tp2_meteo2", appContext.getPackageName());
     }
 }

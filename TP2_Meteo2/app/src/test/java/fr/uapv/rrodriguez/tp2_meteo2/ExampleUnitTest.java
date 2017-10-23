@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp1_meteo1;
+package fr.uapv.rrodriguez.tp2_meteo2;
 
 import org.junit.Test;
 

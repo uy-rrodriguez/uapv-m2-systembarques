@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp1_meteo1;
+package fr.uapv.rrodriguez.tp2_meteo2;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import fr.uapv.rrodriguez.tp1_meteo1.model.City;
-import fr.uapv.rrodriguez.tp1_meteo1.model.CityList;
-import fr.uapv.rrodriguez.tp1_meteo1.util.JSONResponseHandler;
-import fr.uapv.rrodriguez.tp1_meteo1.util.MyUtils;
-import fr.uapv.rrodriguez.tp1_meteo1.util.WSData;
-import fr.uapv.rrodriguez.tp1_meteo1.util.WSUtil;
+import fr.uapv.rrodriguez.tp2_meteo2.model.City;
+import fr.uapv.rrodriguez.tp2_meteo2.model.CityDAO;
+import fr.uapv.rrodriguez.tp2_meteo2.util.JSONResponseHandler;
+import fr.uapv.rrodriguez.tp2_meteo2.util.MyUtils;
+import fr.uapv.rrodriguez.tp2_meteo2.util.WSData;
+import fr.uapv.rrodriguez.tp2_meteo2.util.WSUtil;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     ListView listViewVilles;
     FloatingActionButton fabAjouterVille;
 
+    List<City> listeVillesEnBDD;
     ArrayAdapter<City> adapterListeVilles;
 
     // Options du menu contextuel de villes
@@ -64,10 +65,11 @@ public class MainActivity extends AppCompatActivity {
         fabAjouterVille = (FloatingActionButton) findViewById(R.id.fabAjouterVille);
 
         // Charge des villes dans la liste
+        listeVillesEnBDD = CityDAO.list(activity);
         adapterListeVilles = new ArrayAdapter<City>(
                 MainActivity.this,
                 android.R.layout.simple_list_item_1,
-                CityList.getVilles());
+                listeVillesEnBDD);
         listViewVilles.setAdapter(adapterListeVilles);
 
 
@@ -130,8 +132,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (v.getId() == R.id.listViewVilles) {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-            String title = ((City) adapterListeVilles.getItem(info.position)).toString();
-            menu.setHeaderTitle(title);
+
+            City city = (City) adapterListeVilles.getItem(info.position);
+            menu.setHeaderTitle(city.toString());
+
+            // On indique l'id de la ville
+            info.id = city.getId();
 
             //menu.setHeaderTitle(R.string.city_context_menu_title);
             menu.add(0, CITY_CONTEXT_MENU_DEL, 0, R.string.city_context_menu_del);
@@ -144,11 +150,13 @@ public class MainActivity extends AppCompatActivity {
             case CITY_CONTEXT_MENU_DEL:
                 // Ville a supprimer
                 AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-                City supprimer = CityList.getVilles().get(info.position);
+                City supprimer = CityDAO.get(activity, (int) info.id);
 
-                // Suppression de la liste globale
+                // Suppression de la ville en BDD
                 // L'adaptateur qui permet d'afficher la liste est ensuite mis-a-jour
-                CityList.deleteVille(supprimer);
+                CityDAO.delete(activity, supprimer);
+                listeVillesEnBDD.clear();
+                listeVillesEnBDD.addAll(CityDAO.list(activity));
                 adapterListeVilles.notifyDataSetChanged();
 
                 MyUtils.showSnackBar(activity, "Ville supprimée");
@@ -194,7 +202,9 @@ public class MainActivity extends AppCompatActivity {
 
                 // Ajout de la ville dans la liste globale
                 // L'adaptateur qui permet d'afficher la liste est ensuite mis-a-jour
-                CityList.addVille(ville);
+                CityDAO.insert(activity, ville);
+                listeVillesEnBDD.clear();
+                listeVillesEnBDD.addAll(CityDAO.list(activity));
                 adapterListeVilles.notifyDataSetChanged();
             }
         }
@@ -214,14 +224,15 @@ public class MainActivity extends AppCompatActivity {
             WSData wsdata = new WSData();
 
             // Creation de listes vides pour chaque ville
-            Iterator<City> it = CityList.getVilles().iterator();
+            List<City> listeVilles = CityDAO.list(activity);
+            Iterator<City> it = listeVilles.iterator();
             while (it.hasNext()) {
                 City c = it.next();
                 wsdata.setRetour(c.toString(), new ArrayList<String>());
             }
 
             // Ensuite, pour chaque ville on va faire appel au WS
-            it = CityList.getVilles().iterator();
+            it = listeVilles.iterator();
             while (it.hasNext()) {
                 try {
                     City c = it.next();
@@ -254,7 +265,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(WSData wsdata) {
             // Recuperation des retours du WS et actualisation de la liste de villes
-            Iterator<City> it = CityList.getVilles().iterator();
+            List<City> listeVilles = CityDAO.list(activity);
+            Iterator<City> it = listeVilles.iterator();
             while (it.hasNext()) {
                 City c = it.next();
                 List<String> donnees = wsdata.getRetour(c.toString());
@@ -267,7 +279,15 @@ public class MainActivity extends AppCompatActivity {
                     c.setPression((int) Float.parseFloat(donnees.get(2)));
                     c.setDernierReleve(donnees.get(3));
                 }
+
+                // Actualisation des donnees en BDD
+                CityDAO.update(activity, it.next());
             }
+
+            // Apres d'avoir traite toutes les villes, on va mettre a jour l'adapter
+            listeVillesEnBDD.clear();
+            listeVillesEnBDD.addAll(CityDAO.list(activity));
+            adapterListeVilles.notifyDataSetChanged();
 
             MyUtils.showSnackBar(activity, "Actualisation de villes finalisée !");
         }

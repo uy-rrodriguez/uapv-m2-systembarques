@@ -1,12 +1,8 @@
-package fr.uapv.rrodriguez.tp1_meteo1;
+package fr.uapv.rrodriguez.tp2_meteo2;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
-
-import fr.uapv.rrodriguez.tp1_meteo1.util.MyUtils;
-import fr.uapv.rrodriguez.tp1_meteo1.util.WSData;
 
 public class CityView extends AppCompatActivity {
 

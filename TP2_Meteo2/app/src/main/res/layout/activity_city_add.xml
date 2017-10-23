@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.uapv.rrodriguez.tp1_meteo1.AddCityActivity">
+    tools:context="fr.uapv.rrodriguez.tp2_meteo2.AddCityActivity">
 
     <GridLayout
         android:layout_width="match_parent"

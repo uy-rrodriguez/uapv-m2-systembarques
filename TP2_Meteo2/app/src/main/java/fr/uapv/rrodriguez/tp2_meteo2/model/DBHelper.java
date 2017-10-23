@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp1_meteo1.model;
+package fr.uapv.rrodriguez.tp2_meteo2.model;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -30,12 +30,12 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteStatement st;
 
         // Table city
-        sql = "CREATE TABLE city(" +
-                "   id             INTEGER AUTO_INCREMENT," +
+        sql = "CREATE TABLE weather(" +
+                "   _ID            INTEGER AUTO_INCREMENT," +
                 "   nom            VARCHAR(20)," +
                 "   pays           VARCHAR(20)," +
                 "   dernierReleve  DATE," +
-                "   ventDir        VARCHAR(10)," +
+                "   vent           VARCHAR(10)," +
                 "   pression       INTEGER," +
                 "   temp           FLOAT," +
                 "   PRIMARY KEY    (id)," +
