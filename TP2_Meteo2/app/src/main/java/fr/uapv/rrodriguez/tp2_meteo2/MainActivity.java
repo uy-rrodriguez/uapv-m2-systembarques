@@ -1,10 +1,16 @@
 package fr.uapv.rrodriguez.tp2_meteo2;
 
+import android.app.LoaderManager;
+import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -12,8 +18,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,20 +28,25 @@ import java.util.Iterator;
 import java.util.List;
 
 import fr.uapv.rrodriguez.tp2_meteo2.model.City;
-import fr.uapv.rrodriguez.tp2_meteo2.model.CityDAO;
 import fr.uapv.rrodriguez.tp2_meteo2.util.JSONResponseHandler;
 import fr.uapv.rrodriguez.tp2_meteo2.util.MyUtils;
 import fr.uapv.rrodriguez.tp2_meteo2.util.WSData;
 import fr.uapv.rrodriguez.tp2_meteo2.util.WSUtil;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     MainActivity activity;
     ListView listViewVilles;
     FloatingActionButton fabAjouterVille;
 
-    List<City> listeVillesEnBDD;
-    ArrayAdapter<City> adapterListeVilles;
+    SimpleCursorAdapter adapterListeVilles;
+
+    // Identifiant du loader à utiliser. L'id d'un Loader est spécifique à chaque Activity ou Fragment
+    // où le Loader est utilisé
+    private static final int CITY_LOADER_ID = 1;
+
+    // URI du ContentProvider à contacter (WeatherContentProvider)
+    private static final String WEATHER_PROVIDER_URI = "content://fr.uapv.rrodriguez.tp2_meteo2.provider/weather";
 
     // Options du menu contextuel de villes
     final static int CITY_CONTEXT_MENU_DEL = 1;
@@ -58,19 +69,41 @@ public class MainActivity extends AppCompatActivity {
 
         activity = this;
 
-        // On récupère la ListView
-        listViewVilles = (ListView) findViewById(R.id.listViewVilles);
-
         // On récupère le FAB
         fabAjouterVille = (FloatingActionButton) findViewById(R.id.fabAjouterVille);
 
-        // Charge des villes dans la liste
-        listeVillesEnBDD = CityDAO.list(activity);
-        adapterListeVilles = new ArrayAdapter<City>(
+
+        /*
+         * Début création du LoaderManager pour une charges des villes asynchrone
+         */
+
+        // On récupère la ListView
+        listViewVilles = (ListView) findViewById(R.id.listViewVilles);
+
+        // Colonnes de la ville a afficher
+        String[] colonnesVille = {"nom", "pays"};
+        int[] idViewsVille = {android.R.layout.simple_list_item_1,
+                                android.R.layout.simple_list_item_2};
+
+        // Création de l'adapter pour afficher la liste de villes
+        adapterListeVilles = new SimpleCursorAdapter(
                 MainActivity.this,
-                android.R.layout.simple_list_item_1,
-                listeVillesEnBDD);
+                android.R.layout.two_line_list_item,
+                null,
+                colonnesVille,
+                idViewsVille,
+                0);
         listViewVilles.setAdapter(adapterListeVilles);
+
+        // Initialisation du LoaderManager, on passe this pour lui indiquer que c'est à cette
+        // instance que le manager doit renvoyer les résultats du Loader
+        LoaderManager lm = getLoaderManager();
+        lm.initLoader(CITY_LOADER_ID, null, this);
+
+        /*
+         * Fin création du LoaderManager
+         */
+
 
 
         // Liste villes OnClick
@@ -150,17 +183,19 @@ public class MainActivity extends AppCompatActivity {
             case CITY_CONTEXT_MENU_DEL:
                 // Ville a supprimer
                 AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-                City supprimer = CityDAO.get(activity, (int) info.id);
 
                 // Suppression de la ville en BDD
-                // L'adaptateur qui permet d'afficher la liste est ensuite mis-a-jour
-                CityDAO.delete(activity, supprimer);
-                listeVillesEnBDD.clear();
-                listeVillesEnBDD.addAll(CityDAO.list(activity));
-                adapterListeVilles.notifyDataSetChanged();
+                // L'adaptateur qui permet d'afficher la liste est mis-a-jour automatiquement
+                String where = "_ID";
+                String[] whereValues = {"" + info.id};
+                getContentResolver().delete(
+                        Uri.parse(WEATHER_PROVIDER_URI),
+                        where,
+                        whereValues);
+
+                //adapterListeVilles.notifyDataSetChanged();
 
                 MyUtils.showSnackBar(activity, "Ville supprimée");
-
                 break;
 
             default:
@@ -201,12 +236,48 @@ public class MainActivity extends AppCompatActivity {
                 City ville = new City(cityName, cityCountry);
 
                 // Ajout de la ville dans la liste globale
-                // L'adaptateur qui permet d'afficher la liste est ensuite mis-a-jour
-                CityDAO.insert(activity, ville);
-                listeVillesEnBDD.clear();
-                listeVillesEnBDD.addAll(CityDAO.list(activity));
-                adapterListeVilles.notifyDataSetChanged();
+                // L'adaptateur qui permet d'afficher la liste est automatiquement mis-a-jour
+                ContentValues values = new ContentValues();
+                values.put("nom", ville.getPays());
+                values.put("pays", ville.getNom());
+                getContentResolver().insert(Uri.parse(WEATHER_PROVIDER_URI), values);
+
+                //adapterListeVilles.notifyDataSetChanged();
             }
+        }
+    }
+
+
+    /* ******************************************************************************* */
+    /*    Utilisation de Loader                                                        */
+    /* ******************************************************************************* */
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(MainActivity.this, Uri.parse(WEATHER_PROVIDER_URI),
+                null, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        // Le switch suivant est utile pour gérer plusieurs Loaders différents
+        switch (loader.getId()) {
+            case CITY_LOADER_ID:
+                adapterListeVilles.swapCursor(data);
+                break;
+        }
+
+        // Et voilà, les villes sont affichées (on veut croire :) )
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // Si jamais on fait reset du Loader, il va aller chercher à nouveau les villes.
+        // Il faut donc commencer par supprimer les liens vers les éléments actuellement affichés
+        switch (loader.getId()) {
+            case CITY_LOADER_ID:
+                adapterListeVilles.swapCursor(null);
+                break;
         }
     }
 
@@ -224,19 +295,18 @@ public class MainActivity extends AppCompatActivity {
             WSData wsdata = new WSData();
 
             // Creation de listes vides pour chaque ville
-            List<City> listeVilles = CityDAO.list(activity);
-            Iterator<City> it = listeVilles.iterator();
-            while (it.hasNext()) {
-                City c = it.next();
-                wsdata.setRetour(c.toString(), new ArrayList<String>());
+            Cursor cursor = getContentResolver().query(Uri.parse(MainActivity.WEATHER_PROVIDER_URI),
+                                                    null, "", null, "");
+            while (cursor.moveToNext()) {
+                wsdata.setRetour("" + cursor.getInt(cursor.getColumnIndex("_ID")), new ArrayList<String>());
             }
 
             // Ensuite, pour chaque ville on va faire appel au WS
-            it = listeVilles.iterator();
-            while (it.hasNext()) {
+            cursor.moveToFirst();
+            while (cursor.moveToNext()) {
                 try {
-                    City c = it.next();
-                    String url = WSUtil.getURL(c.getNom(), c.getPays());
+                    String url = WSUtil.getURL(cursor.getString(cursor.getColumnIndex("nom")),
+                                                cursor.getString(cursor.getColumnIndex("pays")));
 
                     // Creation de la requete HTTP
                     URL obj = new URL(url);
@@ -245,19 +315,12 @@ public class MainActivity extends AppCompatActivity {
 
                     // Récupération de la réponse
                     List<String> reponse = jsonHandler.handleResponse(con.getInputStream(), "UTF-8");
-                    wsdata.setRetour(c.toString(), reponse);
+                    wsdata.setRetour("" + cursor.getInt(cursor.getColumnIndex("_ID")), reponse);
                 }
                 catch (Exception e) {
-                    Log.e("TP1 Meteo : WS", e.getMessage(), e);
+                    Log.e("TP2 Meteo : WS", e.getMessage(), e);
                 }
             }
-
-            /*
-            try {
-                Thread.sleep(5000);
-            }
-            catch(InterruptedException iex) {}
-            */
 
             return wsdata;
         }
@@ -265,29 +328,31 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(WSData wsdata) {
             // Recuperation des retours du WS et actualisation de la liste de villes
-            List<City> listeVilles = CityDAO.list(activity);
-            Iterator<City> it = listeVilles.iterator();
+            Iterator<String> it = wsdata.getRetour().keySet().iterator();
             while (it.hasNext()) {
-                City c = it.next();
-                List<String> donnees = wsdata.getRetour(c.toString());
-
-                // Actualisation des villes en mémoire
-                if (donnees != null && ! donnees.isEmpty()) {
-                    //(wind, temperature, pressure, time)
-                    c.setVent(donnees.get(0));
-                    c.setTemp(Float.parseFloat(donnees.get(1)));
-                    c.setPression((int) Float.parseFloat(donnees.get(2)));
-                    c.setDernierReleve(donnees.get(3));
-                }
+                String idVille = it.next();
+                List<String> donnees = wsdata.getRetour(idVille);
 
                 // Actualisation des donnees en BDD
-                CityDAO.update(activity, c);
+                if (donnees != null && ! donnees.isEmpty()) {
+                    // (wind, temperature, pressure, time)
+                    ContentValues values = new ContentValues();
+                    values.put("vent", donnees.get(0));
+                    values.put("temp", Float.parseFloat(donnees.get(1)));
+                    values.put("pression", (int) Float.parseFloat(donnees.get(2)));
+                    values.put("dernierReleve", donnees.get(3));
+
+                    String where = "_ID";
+                    String[] whereValues = {idVille};
+                    getContentResolver().update(Uri.parse(WEATHER_PROVIDER_URI),
+                                                values,
+                                                where,
+                                                whereValues);
+                }
             }
 
-            // Apres d'avoir traite toutes les villes, on va mettre a jour l'adapter
-            listeVillesEnBDD.clear();
-            listeVillesEnBDD.addAll(CityDAO.list(activity));
-            adapterListeVilles.notifyDataSetChanged();
+            // Apres d'avoir traite toutes les villes, l'adapter se met à jour automatiquement
+            //adapterListeVilles.notifyDataSetChanged();
 
             MyUtils.showSnackBar(activity, "Actualisation de villes finalisée !");
         }
