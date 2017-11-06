@@ -34,20 +34,11 @@
 
         <!-- Déclaration du Provider pour accèder à l'information des villes en BDD -->
         <provider
-            android:name=".provider.db.WeatherContentProvider"
-            android:authorities="fr.uapv.rrodriguez.tp2_meteo2.provider.db"
+            android:name=".provider.WeatherContentProvider"
+            android:authorities="fr.uapv.rrodriguez.tp2_meteo2.provider"
             android:enabled="true"
             android:exported="false"
             android:label="TP2 Météo2. Provider pour accéder à l'information météo des villes en BDD"></provider>
-
-        <!-- Déclaration du Provider pour accèder au WS de Yahoo Weather -->
-        <provider
-            android:name=".provider.ws.WSWeatherContentProvider"
-            android:authorities="fr.uapv.rrodriguez.tp2_meteo2.provider.ws"
-            android:enabled="true"
-            android:exported="false"
-            android:syncable="true"
-            android:label="TP2 Météo2. Provider pour accéder au WS Yahoo Weather"></provider>
 
         <!-- Déclaration du Service qui va créer l'instance de l'Athenticator -->
         <service

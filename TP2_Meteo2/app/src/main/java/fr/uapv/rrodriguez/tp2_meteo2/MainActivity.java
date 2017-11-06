@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int CITY_LOADER_ID = 1;
 
     // URI du ContentProvider à contacter (WeatherContentProvider)
-    private static final String DB_WEATHER_PROVIDER_AUTHORITY = "fr.uapv.rrodriguez.tp2_meteo2.provider.db";
+    private static final String DB_WEATHER_PROVIDER_AUTHORITY = "fr.uapv.rrodriguez.tp2_meteo2.provider";
     private static final String DB_WEATHER_PROVIDER_URI = "content://" + DB_WEATHER_PROVIDER_AUTHORITY + "/weather";
 
     // Options du menu contextuel de villes
@@ -337,84 +337,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         return compte;
-    }
-
-
-    /* ******************************************************************************* */
-    /*    Inner class : WSRequestTask, faire appel à des WS.                           */
-    /* ******************************************************************************* */
-
-    public class WSRequestTask extends AsyncTask<Void, Void, WSData> {
-        @Override
-        protected WSData doInBackground(Void... params) {
-            JSONResponseHandler jsonHandler = new JSONResponseHandler();
-
-            // Creation de l'objet WSData pour envoyer les resultats de cette tache
-            WSData wsdata = new WSData();
-
-            // Creation de listes vides pour chaque ville
-            Cursor cursor = getContentResolver().query(Uri.parse(MainActivity.DB_WEATHER_PROVIDER_URI),
-                                                    null, "", null, "");
-            while (cursor.moveToNext()) {
-                wsdata.setRetour("" + cursor.getInt(cursor.getColumnIndex("_ID")), new ArrayList<String>());
-            }
-
-            // Ensuite, pour chaque ville on va faire appel au WS
-            cursor.moveToFirst();
-            while (cursor.moveToNext()) {
-                try {
-                    String url = WSUtil.getURL(cursor.getString(cursor.getColumnIndex("nom")),
-                                                cursor.getString(cursor.getColumnIndex("pays")));
-
-                    // Creation de la requete HTTP
-                    URL obj = new URL(url);
-                    HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-                    con.setRequestMethod("GET");
-
-                    // Récupération de la réponse
-                    List<String> reponse = jsonHandler.handleResponse(con.getInputStream(), "UTF-8");
-                    wsdata.setRetour("" + cursor.getInt(cursor.getColumnIndex("_ID")), reponse);
-                }
-                catch (Exception e) {
-                    Log.e("TP2 Meteo : WS", e.getMessage(), e);
-                }
-            }
-
-            return wsdata;
-        }
-
-        @Override
-        protected void onPostExecute(WSData wsdata) {
-            // Recuperation des retours du WS et actualisation de la liste de villes
-            Iterator<String> it = wsdata.getRetour().keySet().iterator();
-            while (it.hasNext()) {
-                String idVille = it.next();
-                List<String> donnees = wsdata.getRetour(idVille);
-
-                // Actualisation des donnees en BDD
-                if (donnees != null && ! donnees.isEmpty()) {
-                    // (wind, temperature, pressure, time)
-                    ContentValues values = new ContentValues();
-                    values.put("vent", donnees.get(0));
-                    values.put("temp", Float.parseFloat(donnees.get(1)));
-                    values.put("pression", (int) Float.parseFloat(donnees.get(2)));
-                    values.put("dernierReleve", donnees.get(3));
-
-                    String where = "_ID";
-                    String[] whereValues = {idVille};
-                    getContentResolver().update(Uri.parse(DB_WEATHER_PROVIDER_URI),
-                                                values,
-                                                where,
-                                                whereValues);
-                }
-            }
-
-            // Apres d'avoir traite toutes les villes, l'adapter se met à jour automatiquement
-            //adapterListeVilles.notifyDataSetChanged();
-
-            MyUtils.showSnackBar(activity, "Actualisation de villes finalisée !");
-        }
-
     }
 
 }

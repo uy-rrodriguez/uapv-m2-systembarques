@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import fr.uapv.rrodriguez.tp2_meteo2.provider.db.WeatherContentProvider;
+import fr.uapv.rrodriguez.tp2_meteo2.provider.WeatherContentProvider;
 
 /**
  * Created by uy.rrodriguez on 23/10/2017.
