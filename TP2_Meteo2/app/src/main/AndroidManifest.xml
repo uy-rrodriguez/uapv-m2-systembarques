@@ -2,7 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fr.uapv.rrodriguez.tp2_meteo2">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission
+        android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission
+        android:name="android.permission.WRITE_SYNC_SETTINGS"/>
 
     <application
         android:allowBackup="true"
@@ -25,12 +32,45 @@
             android:name=".AddCityActivity"
             android:label="@string/title_activity_city_add" />
 
+        <!-- Déclaration du Provider pour accèder à l'information des villes en BDD -->
         <provider
-            android:name=".provider.WeatherContentProvider"
-            android:authorities="fr.uapv.rrodriguez.tp2_meteo2.provider"
+            android:name=".provider.db.WeatherContentProvider"
+            android:authorities="fr.uapv.rrodriguez.tp2_meteo2.provider.db"
             android:enabled="true"
             android:exported="false"
-            android:label="TP2 Météo2. Provider pour accéder à l'information météo des villes"></provider>
+            android:label="TP2 Météo2. Provider pour accéder à l'information météo des villes en BDD"></provider>
+
+        <!-- Déclaration du Provider pour accèder au WS de Yahoo Weather -->
+        <provider
+            android:name=".provider.ws.WSWeatherContentProvider"
+            android:authorities="fr.uapv.rrodriguez.tp2_meteo2.provider.ws"
+            android:enabled="true"
+            android:exported="false"
+            android:syncable="true"
+            android:label="TP2 Météo2. Provider pour accéder au WS Yahoo Weather"></provider>
+
+        <!-- Déclaration du Service qui va créer l'instance de l'Athenticator -->
+        <service
+            android:name=".syncadapter.YahooWeatherAuthService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/yahoo_weather_authenticator" />
+        </service>
+
+        <!-- Déclaration du Service qui va intéragir avec le sync adapter framework -->
+        <service
+            android:name=".syncadapter.YahooWeatherSyncService"
+            android:exported="true"
+            android:process=":sync">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
     </application>
 
 </manifest>

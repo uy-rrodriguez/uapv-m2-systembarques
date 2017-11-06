@@ -3,7 +3,7 @@ package fr.uapv.rrodriguez.tp2_meteo2.util;
 import android.net.Uri;
 
 /**
- * Created by Ricci on 18/10/2017.
+ * Created by uy.rrodriguez on 18/10/2017.
  */
 
 public class WSUtil {

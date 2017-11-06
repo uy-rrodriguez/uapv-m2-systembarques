@@ -1,7 +1,11 @@
 package fr.uapv.rrodriguez.tp2_meteo2;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.LoaderManager;
+import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -35,24 +39,38 @@ import fr.uapv.rrodriguez.tp2_meteo2.util.WSUtil;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    MainActivity activity;
-    ListView listViewVilles;
-    FloatingActionButton fabAjouterVille;
-
-    SimpleCursorAdapter adapterListeVilles;
-
     // Identifiant du loader à utiliser. L'id d'un Loader est spécifique à chaque Activity ou Fragment
     // où le Loader est utilisé
     private static final int CITY_LOADER_ID = 1;
 
     // URI du ContentProvider à contacter (WeatherContentProvider)
-    private static final String WEATHER_PROVIDER_URI = "content://fr.uapv.rrodriguez.tp2_meteo2.provider/weather";
+    private static final String DB_WEATHER_PROVIDER_AUTHORITY = "fr.uapv.rrodriguez.tp2_meteo2.provider.db";
+    private static final String DB_WEATHER_PROVIDER_URI = "content://" + DB_WEATHER_PROVIDER_AUTHORITY + "/weather";
 
     // Options du menu contextuel de villes
     final static int CITY_CONTEXT_MENU_DEL = 1;
 
     // Identifiants pour les activites qui retournent des donnees
     final static int ADD_CITY_REQUEST = 1;
+
+    // Compte pour se conecter au WS Yahoo Weather
+    public static final String ACCOUNT_TYPE = "tp2_meteo2.rrodriguez.uapv.fr";
+    public static final String ACCOUNT = "dummyaccount";
+
+    // Périodicité de synchronisation de villes (appel au WS Yahoo Weather)
+    public static final long SECONDS_PER_MINUTE = 60L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 60L;
+    public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
+
+
+    // Variables d'instance
+    private MainActivity activity;
+    private ListView listViewVilles;
+    private FloatingActionButton fabAjouterVille;
+    private SimpleCursorAdapter adapterListeVilles;
+
+    // Compte pour se conecter au WS Yahoo Weather
+    private Account compteYahooWeather;
 
 
     @Override
@@ -68,6 +86,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
 
         activity = this;
+
+        // Création du compte pour Yahoo Weather
+        compteYahooWeather = creerCompteYahooWeather(this);
+
+        // Configuration de la périodicité du SyncAdapter
+        ContentResolver.addPeriodicSync(
+                compteYahooWeather,
+                DB_WEATHER_PROVIDER_AUTHORITY,
+                Bundle.EMPTY,
+                SYNC_INTERVAL);
+
 
         // On récupère le FAB
         fabAjouterVille = (FloatingActionButton) findViewById(R.id.fabAjouterVille);
@@ -103,7 +132,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         /*
          * Fin création du LoaderManager
          */
-
 
 
         // Liste villes OnClick
@@ -189,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 String where = "_ID";
                 String[] whereValues = {"" + info.id};
                 getContentResolver().delete(
-                        Uri.parse(WEATHER_PROVIDER_URI),
+                        Uri.parse(DB_WEATHER_PROVIDER_URI),
                         where,
                         whereValues);
 
@@ -211,7 +239,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             // action with ID action_refresh was selected
             case R.id.action_refresh:
                 MyUtils.showSnackBar(activity, "Actualisation en cours...");
-                new WSRequestTask().execute();
+                //new WSRequestTask().execute();
+
+                // Lancement d'un synchronisation des villes en background
+                Bundle syncBundle = new Bundle();
+                syncBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+                syncBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+
+                ContentResolver.requestSync(
+                        compteYahooWeather,
+                        DB_WEATHER_PROVIDER_AUTHORITY,
+                        syncBundle);
+
                 break;
 
             default:
@@ -240,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 ContentValues values = new ContentValues();
                 values.put("nom", ville.getPays());
                 values.put("pays", ville.getNom());
-                getContentResolver().insert(Uri.parse(WEATHER_PROVIDER_URI), values);
+                getContentResolver().insert(Uri.parse(DB_WEATHER_PROVIDER_URI), values);
 
                 //adapterListeVilles.notifyDataSetChanged();
             }
@@ -254,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(MainActivity.this, Uri.parse(WEATHER_PROVIDER_URI),
+        return new CursorLoader(MainActivity.this, Uri.parse(DB_WEATHER_PROVIDER_URI),
                 null, null, null, null);
     }
 
@@ -282,6 +321,25 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
+    /**
+     * Crée et retourne un nouveau compte pour se connecter à Yahoo Weather.
+     *
+     * @param context
+     */
+    public static Account creerCompteYahooWeather(Context context) {
+        Account compte = new Account(ACCOUNT, ACCOUNT_TYPE);
+        AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
+
+        if (accountManager.addAccountExplicitly(compte, null, null)) {
+        }
+        else {
+            Log.e("TP2 Meteo : Main", "Il y a eu une erreur pour créer le compte Yahoo Weather");
+        }
+
+        return compte;
+    }
+
+
     /* ******************************************************************************* */
     /*    Inner class : WSRequestTask, faire appel à des WS.                           */
     /* ******************************************************************************* */
@@ -295,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             WSData wsdata = new WSData();
 
             // Creation de listes vides pour chaque ville
-            Cursor cursor = getContentResolver().query(Uri.parse(MainActivity.WEATHER_PROVIDER_URI),
+            Cursor cursor = getContentResolver().query(Uri.parse(MainActivity.DB_WEATHER_PROVIDER_URI),
                                                     null, "", null, "");
             while (cursor.moveToNext()) {
                 wsdata.setRetour("" + cursor.getInt(cursor.getColumnIndex("_ID")), new ArrayList<String>());
@@ -344,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                     String where = "_ID";
                     String[] whereValues = {idVille};
-                    getContentResolver().update(Uri.parse(WEATHER_PROVIDER_URI),
+                    getContentResolver().update(Uri.parse(DB_WEATHER_PROVIDER_URI),
                                                 values,
                                                 where,
                                                 whereValues);

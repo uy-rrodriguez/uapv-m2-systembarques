@@ -1,4 +1,4 @@
-package fr.uapv.rrodriguez.tp2_meteo2.provider;
+package fr.uapv.rrodriguez.tp2_meteo2.provider.db;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -23,7 +23,7 @@ public class WeatherContentProvider extends ContentProvider {
     private DBHelper dbhelper;
 
     private static final String TABLE_NAME = "weather";
-    private static final String AUTHORITY = "fr.uapv.rrodriguez.tp2_meteo2.provider";
+    private static final String AUTHORITY = "fr.uapv.rrodriguez.tp2_meteo2.provider.db";
     private static final int URI_TYPE_DIR = 1;
     private static final int URI_TYPE_ITEM = 2;
 

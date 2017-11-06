@@ -11,11 +11,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import fr.uapv.rrodriguez.tp2_meteo2.model.City;
-import fr.uapv.rrodriguez.tp2_meteo2.provider.WeatherContentProvider;
+import fr.uapv.rrodriguez.tp2_meteo2.provider.db.WeatherContentProvider;
 
 /**
- * Created by Ricci on 23/10/2017.
+ * Created by uy.rrodriguez on 23/10/2017.
  */
 
 public class WeatherContentProviderTest extends ProviderTestCase2 {
