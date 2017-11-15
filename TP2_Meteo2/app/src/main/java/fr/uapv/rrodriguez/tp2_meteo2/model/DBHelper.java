@@ -31,7 +31,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         // Table weather
         sql = "CREATE TABLE weather(" +
-                "   _ID            INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "   _id            INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "   nom            VARCHAR(20)," +
                 "   pays           VARCHAR(20)," +
                 "   dernierReleve  DATE," +
@@ -56,4 +56,21 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Rien
     }
+
+    /*
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+
+        String sql;
+        SQLiteStatement st;
+
+        // Table weather
+        sql = "DROP TABLE weather;";
+        st = db.compileStatement(sql);
+        st.execute();
+
+        onCreate(db);
+    }
+    */
 }

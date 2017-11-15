@@ -1,5 +1,7 @@
 package fr.uapv.rrodriguez.tp2_meteo2.model;
 
+import android.database.Cursor;
+
 import java.io.Serializable;
 
 /**

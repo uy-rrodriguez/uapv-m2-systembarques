@@ -18,7 +18,7 @@ import java.util.List;
 public class CityDAO {
     private static final String TABLE_NAME = "weather";
 
-    private static ContentValues cityToContentValues(City city) {
+    public static ContentValues cityToContentValues(City city) {
         ContentValues values = new ContentValues();
         //values.put("_ID", city.getId());
         values.put("nom", city.getNom());
@@ -30,9 +30,9 @@ public class CityDAO {
         return values;
     }
 
-    private static City cursorToCity(Cursor cursor) {
+    public static City cursorToCity(Cursor cursor) {
         City city = new City("", "");
-        city.setId(cursor.getInt(cursor.getColumnIndexOrThrow("_ID")));
+        city.setId(cursor.getInt(cursor.getColumnIndexOrThrow("_id")));
         city.setNom(cursor.getString(cursor.getColumnIndexOrThrow("nom")));
         city.setPays(cursor.getString(cursor.getColumnIndexOrThrow("pays")));
         city.setDernierReleve(cursor.getString(cursor.getColumnIndexOrThrow("dernierReleve")));

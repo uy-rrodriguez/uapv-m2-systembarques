@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
@@ -18,6 +19,7 @@ import java.util.List;
 
 import fr.uapv.rrodriguez.tp2_meteo2.model.City;
 import fr.uapv.rrodriguez.tp2_meteo2.model.DBHelper;
+import fr.uapv.rrodriguez.tp2_meteo2.util.MyUtils;
 
 public class WeatherContentProvider extends ContentProvider {
     private DBHelper dbhelper;
@@ -124,6 +126,9 @@ public class WeatherContentProvider extends ContentProvider {
         try {
             id = (int) db.insertOrThrow(TABLE_NAME, null, values);
         }
+        catch (SQLiteConstraintException sqlcex) {
+            Log.e("TP2 Meteo : insert", "La ville existe déjà !");
+        }
         catch (SQLException sqlex) {
             throw sqlex;
         }
@@ -150,7 +155,7 @@ public class WeatherContentProvider extends ContentProvider {
 
         while (! cursor.isAfterLast()) {
             String[] whereValues = {"" + cursor.getInt(cursor.getColumnIndex("_ID"))};
-            rows += db.update(TABLE_NAME, values, "_ID = ?", whereValues);
+            rows += db.update(TABLE_NAME, values, "_id = ?", whereValues);
             cursor.moveToNext();
         }
 
@@ -170,8 +175,8 @@ public class WeatherContentProvider extends ContentProvider {
         cursor.moveToFirst();
 
         while (! cursor.isAfterLast()) {
-            String[] whereValues = {"" + cursor.getInt(cursor.getColumnIndex("_ID"))};
-            rows += db.delete(TABLE_NAME, "_ID = ?", whereValues);
+            String[] whereValues = {"" + cursor.getInt(cursor.getColumnIndex("_id"))};
+            rows += db.delete(TABLE_NAME, "_id = ?", whereValues);
             cursor.moveToNext();
         }
 
