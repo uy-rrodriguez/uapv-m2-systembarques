@@ -57,20 +57,22 @@ public class DBHelper extends SQLiteOpenHelper {
         // Rien
     }
 
-    /*
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
+        
+        // Hack pour recréer la table weather
+        boolean debug = false;
+        if (debug) {
+            String sql;
+            SQLiteStatement st;
 
-        String sql;
-        SQLiteStatement st;
+            // Table weather
+            sql = "DROP TABLE weather;";
+            st = db.compileStatement(sql);
+            st.execute();
 
-        // Table weather
-        sql = "DROP TABLE weather;";
-        st = db.compileStatement(sql);
-        st.execute();
-
-        onCreate(db);
+            onCreate(db);
+        }
     }
-    */
 }

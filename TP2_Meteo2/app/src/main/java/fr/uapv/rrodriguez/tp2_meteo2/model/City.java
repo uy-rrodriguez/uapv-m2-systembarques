@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * Une ville devra correspondre à un objet City ayant les attributs suivants :
  *
- * - _ID dans la table "city"
+ * - _id dans la table "city"
  * - nom de la ville,
  * - pays d'appartenance,
  * - date du dernier relevé météo,
@@ -20,7 +20,7 @@ import java.io.Serializable;
  */
 
 public class City implements Serializable {
-    private int _ID = 0;
+    private int _id = 0;
     private String nom;
     private String pays;
     private String dernierReleve;
@@ -44,11 +44,11 @@ public class City implements Serializable {
     /* Getter et Setter */
 
     public int getId() {
-        return _ID;
+        return _id;
     }
 
     public void setId(int id) {
-        this._ID = id;
+        this._id = id;
     }
 
     public String getNom() { return nom; }

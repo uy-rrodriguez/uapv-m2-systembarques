@@ -10,8 +10,10 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -36,7 +38,6 @@ import fr.uapv.rrodriguez.tp2_meteo2.model.City;
 import fr.uapv.rrodriguez.tp2_meteo2.model.CityDAO;
 import fr.uapv.rrodriguez.tp2_meteo2.util.JSONResponseHandler;
 import fr.uapv.rrodriguez.tp2_meteo2.util.MyUtils;
-import fr.uapv.rrodriguez.tp2_meteo2.util.WSData;
 import fr.uapv.rrodriguez.tp2_meteo2.util.WSUtil;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -70,7 +71,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private ListView listViewVilles;
     private FloatingActionButton fabAjouterVille;
     private SimpleCursorAdapter adapterListeVilles;
+    
+    // Pour accéder au ContentProvider
+    private ContentResolver contentResolver;
 
+    // Observer qui va écouter le Provider
+    private WeatherObserver observer;
+    
     // Compte pour se conecter au WS Yahoo Weather
     private Account compteYahooWeather;
 
@@ -92,13 +99,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Création du compte pour Yahoo Weather
         compteYahooWeather = creerCompteYahooWeather(this);
 
+        // Récupération d'une instance de ContentResolver
+        contentResolver = getContentResolver();
+        
+        // Création de l'Observer pour réagir aux changements dans la BDD
+        observer = new WeatherObserver(new Handler());
+        
         // Configuration de la périodicité du SyncAdapter
         ContentResolver.addPeriodicSync(
                 compteYahooWeather,
                 DB_WEATHER_PROVIDER_AUTHORITY,
                 Bundle.EMPTY,
                 SYNC_INTERVAL);
-
 
         // On récupère le FAB
         fabAjouterVille = (FloatingActionButton) findViewById(R.id.fabAjouterVille);
@@ -113,8 +125,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         // Colonnes de la ville a afficher
         String[] colonnesVille = {"nom", "pays"};
-        int[] idViewsVille = {android.R.id.text2,
-                                android.R.id.text1};
+        int[] idViewsVille = {android.R.id.text1,
+                                android.R.id.text2};
 
         // Création de l'adapter pour afficher la liste de villes
         adapterListeVilles = new SimpleCursorAdapter(
@@ -190,6 +202,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
     }
+    
+    @Override
+    public void onResume(){
+        super.onResume();
+        
+        // Enregistrement de l'Observer pour réagir aux changements dans la BDD
+        contentResolver.registerContentObserver(Uri.parse(DB_WEATHER_PROVIDER_URI), true, observer);
+    }
+    
+    @Override
+    public void onPause(){
+        super.onPause();
+        
+        // "Desenregistrement" de l'Observer
+        contentResolver.unregisterContentObserver(observer);
+    }
+    
 
     // Menu contextuel pour supprimer une ville
     public void onCreateContextMenu(ContextMenu menu, View v,
@@ -199,11 +228,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (v.getId() == R.id.listViewVilles) {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
 
-            //City city = (City) adapterListeVilles.getItem(info.position);
-
             // Récupération du cursor
             Cursor c = (Cursor) adapterListeVilles.getItem(info.position);
             City city = CityDAO.cursorToCity(c);
+            Log.d("TP2_Meteo", "Main : Menu contextuel pour ville " + city.getId());
 
             menu.setHeaderTitle(city.toString());
 
@@ -223,15 +251,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
                 // Suppression de la ville en BDD
-                // L'adaptateur qui permet d'afficher la liste est mis-a-jour automatiquement
-                String where = "_id";
+                // L'adaptateur qui permet d'afficher la liste est ensuite mis-a-jour
+                String where = "_id = ?";
                 String[] whereValues = {"" + info.id};
-                getContentResolver().delete(
+                contentResolver.delete(
                         Uri.parse(DB_WEATHER_PROVIDER_URI),
                         where,
                         whereValues);
 
-                //adapterListeVilles.notifyDataSetChanged();
+                // Lancer une recharge du contenu dans la liste
+                //getLoaderManager().restartLoader(CITY_LOADER_ID, null, this);
 
                 MyUtils.showSnackBar(activity, "Ville supprimée");
                 break;
@@ -287,10 +316,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 // Ajout de la ville dans la liste globale
                 // L'adaptateur qui permet d'afficher la liste est ensuite mis-a-jour
                 ContentValues values = new ContentValues();
-                values.put("nom", ville.getPays());
-                values.put("pays", ville.getNom());
-                getContentResolver().insert(Uri.parse(DB_WEATHER_PROVIDER_URI), values);
+                values.put("nom", ville.getNom());
+                values.put("pays", ville.getPays());
+                contentResolver.insert(Uri.parse(DB_WEATHER_PROVIDER_URI), values);
 
+                // Lancer une recharge du contenu dans la liste
                 getLoaderManager().restartLoader(CITY_LOADER_ID, null, this);
             }
         }
@@ -309,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        //Log.d("TP2 Meteo:loadFinished", Arrays.asList(data.getColumnNames()).toString());
+        Log.d("TP2_Meteo", "Main.onLoadFinished : " + Arrays.asList(data.getColumnNames()).toString());
 
         // Le switch suivant est utile pour gérer plusieurs Loaders différents
         switch (loader.getId()) {
@@ -348,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (accountManager.addAccountExplicitly(compte, null, null)) {
         }
         else {
-            Log.e("TP2 Meteo : Main", "Il y a eu une erreur pour créer le compte Yahoo Weather");
+            Log.e("TP2_Meteo", "Il y a eu une erreur pour créer le compte Yahoo Weather");
         }
         */
 
@@ -357,4 +387,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return compte;
     }
 
+    
+    /* ************************************************************************************** 
+     * Observer pour réagir aux changements dans la BDD
+    /* ************************************************************************************** */
+    public class WeatherObserver extends ContentObserver {
+        
+        public WeatherObserver(Handler handler) {
+            super(handler);
+            Log.d("TP2_Meteo", "WeatherObserver.constructor");
+        }
+
+        /**
+         * Signature pour compatibilité avec versions anciennes du SDK
+         */
+        @Override
+        public void onChange(boolean selfChange) {
+            Log.d("TP2_Meteo", "WeatherObserver.onChange(" + selfChange + ")");
+            
+            onChange(selfChange, null);
+        }
+        
+        @Override
+        public void onChange(boolean selfChange, Uri changeUri) {
+            Log.d("TP2_Meteo", "WeatherObserver.onChange(" + selfChange + ", " + changeUri + ")");
+            
+            // Lancer une recharge du contenu dans la liste
+            activity.getLoaderManager().restartLoader(activity.CITY_LOADER_ID, null, activity);
+        }
+    }
 }

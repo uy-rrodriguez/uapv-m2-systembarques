@@ -17,6 +17,8 @@ import java.net.URL;
 import java.sql.Date;
 import java.util.List;
 
+import fr.uapv.rrodriguez.tp2_meteo2.model.City;
+import fr.uapv.rrodriguez.tp2_meteo2.model.CityDAO;
 import fr.uapv.rrodriguez.tp2_meteo2.util.JSONResponseHandler;
 import fr.uapv.rrodriguez.tp2_meteo2.util.WSUtil;
 
@@ -59,78 +61,77 @@ public class YahooWeatherSyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
-        // Traitement de la requête, les paramètres sont pris de extras
-        String pays = extras.getString("pays");
-        String ville = extras.getString("ville");
+        Log.d("TP2_Meteo", "SyncAdapter.onPerformSync");
 
         // URI du provider à contacter pour stocker les données en BDD
-        String uri = "content://" + authority + "/weather/" + pays + "/" + ville;
-
-
-        // Ensuite, on va faire appel au WS
-        HttpURLConnection con = null;
+        String uri = "content://" + authority + "/weather";
+        
+        // Récupération des villes en BDD
         try {
-            URL url = new URL(WSUtil.getURL(ville, pays));
-            con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
+            Cursor c = provider.query(Uri.parse(uri), null, "", null, "");
+            c.moveToFirst();
 
-            // Récupération de la réponse
-            List<String> reponse = jsonHandler.handleResponse(con.getInputStream(), "UTF-8");
-            con.disconnect();
+            // Ensuite, on va faire appel au WS pour chaque ville
+            while (! c.isAfterLast()) {
+                City ville = CityDAO.cursorToCity(c);
+                Log.d("TP2_Meteo", "SyncAdapter.onPerformSync : Ville objet = " + ville);
+                
+                HttpURLConnection con = null;
+                try {
+                    String urlYahoo = WSUtil.getURL(ville.getNom(), ville.getPays());
+                    Log.d("TP2_Meteo", "SyncAdapter.onPerformSync : URI Yahoo " + urlYahoo);
+                    
+                    URL url = new URL(urlYahoo);
+                    con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("GET");
 
-            // Si la réponse est vide, on arrête le traitement. Sinon on continue.
-            if (reponse == null || reponse.isEmpty()) {
-                Log.d("TP2 Meteo : SyncAdapter", "Le WS à retourné une réponse vide");
-                return;
+                    // Récupération de la réponse
+                    List<String> reponse = jsonHandler.handleResponse(con.getInputStream(), "UTF-8");
+
+                    // Si la réponse est vide, on arrête le traitement. Sinon on continue.
+                    if (reponse == null || reponse.isEmpty()) {
+                        Log.d("TP2_Meteo", "SyncAdapter.onPerformSync : Le WS à retourné une réponse vide");
+                        continue;
+                    }
+
+                    // (wind, temperature, pressure, time)
+                    String vent             = reponse.get(0);
+                    float temp              = Float.parseFloat(reponse.get(1));
+                    int pression            = (int) Float.parseFloat(reponse.get(2));
+                    String dernierReleve    = reponse.get(3);
+
+
+                    /* *** Stockage de la réponse en BDD *** */
+
+                    // Si tout va bien, actualisation de la ville en BDD
+                    ContentValues values = new ContentValues();
+                    values.put("vent",          vent);
+                    values.put("temp",          temp);
+                    values.put("pression",      pression);
+                    values.put("dernierReleve", dernierReleve);
+
+                    String where = "_id = ?";
+                    String[] whereValues = {"" + ville.getId()};
+                    
+                    provider.update(Uri.parse(uri), values, where, whereValues);
+                }
+
+                catch (Exception e) {
+                    Log.e("TP2_Meteo", "SyncAdapter.onPerformSync : " + e.getMessage(), e);
+                }
+
+                finally {
+                    c.moveToNext();
+                    
+                    if (con != null)
+                        con.disconnect();
+                }
             }
-
-            // (wind, temperature, pressure, time)
-            String vent             = reponse.get(0);
-            float temp              = Float.parseFloat(reponse.get(1));
-            int pression            = (int) Float.parseFloat(reponse.get(2));
-            String dernierReleve    = reponse.get(3);
-
-
-            /* *** Stockage de la réponse en BDD *** */
-
-            // On ne stocke l'information que si la date de dernier rélévé retourné par le WS
-            // et supérieure à celle en BDD
-            Cursor cursor = provider.query(Uri.parse(uri), null, "", null, "");
-
-            // S'il n'y a pas de données en BDD, on arrête le traitement
-            if (! cursor.moveToFirst()) {
-                Log.e("TP2 Meteo : SyncAdapter", "Ville à actualiser non trouvée en BDD");
-                return;
-            }
-
-            // Comparaison de dates
-            String dateBDDString = cursor.getString(cursor.getColumnIndex("dernierReleve"));
-            Date dateBDD = Date.valueOf(dateBDDString);
-            Date dateWS = Date.valueOf(dernierReleve);
-
-            // Si la date du WS n'est pas supérieure, alors on arrête le traitement
-            if (dateWS.compareTo(dateBDD) <= 0) {
-                Log.d("TP2 Meteo : SyncAdapter", "Les données météo du WS n'ont pas éte actualisées");
-                return;
-            }
-
-            // Si tout va bien, actualisation de la ville en BDD
-            ContentValues values = new ContentValues();
-            values.put("vent",          vent);
-            values.put("temp",          temp);
-            values.put("pression",      pression);
-            values.put("dernierReleve", dernierReleve);
-
-            provider.update(Uri.parse(uri), values, "", null);
-        }
+            
+        } // try de BDD
 
         catch (Exception e) {
-            Log.e("TP2 Meteo : SyncAdapter", e.getMessage(), e);
-        }
-
-        finally {
-            if (con != null)
-                con.disconnect();
+            Log.e("TP2_Meteo", "SyncAdapter.onPerformSync : " + e.getMessage(), e);
         }
     }
 }
